@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: python worker.py
+    environment:
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

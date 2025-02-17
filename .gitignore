@@ -1,0 +1,21 @@
+#
+/*json
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+
+# Cache
+.mypy_cache/
+.pytest_cache/
+
+# Logs
+*.log
+
+# IDE settings
+.vscode/
+
+/*.env

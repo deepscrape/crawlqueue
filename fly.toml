@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for deepcrawlqueue on 2025-02-17T20:50:59+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'deepcrawlqueue'
+primary_region = 'fra'
+
+[build]
+
+[env]
+  UPSTASH_REDIS_REST_URL = 'https://gusc1-saved-terrapin-30766.upstash.io'
+
+[http_service]
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  max_machines_running = 10
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 4

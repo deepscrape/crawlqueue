@@ -1,0 +1,11 @@
+crawl4ai
+beautifulsoup4
+firebase-admin
+google-cloud-firestore
+upstash-redis
+apscheduler
+pydantic
+psutil
+aiomultiprocess
+prometheus_client
+redis[hiredis]
