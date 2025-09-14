@@ -7,18 +7,8 @@ from crawl4ai import (
     DefaultMarkdownGenerator,
     PruningContentFilter,
 )
-
-
 from actions import basic_crawl  # , infinite_scroll
 # from dynamic_selectors import auto_detect_selectors
-
-from pydantic import BaseModel
-
-
-# This class likely represents a product entity and inherits from a base model class.
-class Product(BaseModel):
-    name: str
-    price: str
 
 
 async def event_stream(url):
@@ -217,7 +207,7 @@ async def basic_crawl_operation(
     """Generate basic crawler."""
 
     try:
-        result = await crawler.arun(
+        result: CrawlResult = await crawler.arun(
             url=url,
             config=crawl_config,
             session_id=session_id,
@@ -241,6 +231,7 @@ async def basic_crawl_operation(
             # print("CSS Selectors:", selectors['css_selectors'])
             # return result  # Most relevant content in markdown format
             # 6. Show usage stats
+
             # llm_strategy.show_usage()  # prints token usage
             # return data
             print("Results:", "Yes")
