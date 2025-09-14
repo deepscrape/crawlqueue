@@ -9,3 +9,5 @@ psutil
 aiomultiprocess
 prometheus_client
 redis[hiredis]
+aioboto3
+zstandard
