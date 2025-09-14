@@ -1,4 +1,4 @@
-from crawl4ai import AsyncWebCrawler, CacheMode
+from crawl4ai import AsyncWebCrawler, CacheMode, CrawlResult
 from crawl4ai.async_configs import CrawlerRunConfig
 
 
@@ -22,7 +22,7 @@ async def infinite_scroll(
         markdown_generator=markdown_generator,
     )
 
-    result = await crawler.arun(
+    result: CrawlResult = await crawler.arun(
         url=url,  # "https://lnk.bio/akis_petretzikis"
         config=next_config,
     )

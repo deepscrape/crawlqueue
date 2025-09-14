@@ -1,9 +1,7 @@
 import os
 from dotenv import load_dotenv
 import firebase_admin.auth
-import firebase_admin.db
 import firebase_admin.firestore
-import firebase_admin.storage
 import firebase_admin
 from firebase_admin import credentials
 import json

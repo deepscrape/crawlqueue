@@ -1,22 +1,50 @@
 import asyncio
+
+from pydantic import BaseModel, ConfigDict
 from crawl import process_scheduled_tasks, worker
+from crawler_pool import close_all, janitor
 from monitor import DynamicRateLimiter, WorkerMonitor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-# from pydantic import BaseModel
 
 scheduler = AsyncIOScheduler()
 
+class AppConfig(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    worker_monitor: WorkerMonitor
+    rate_limiter: DynamicRateLimiter
 
-app = {
-    "worker_monitor": WorkerMonitor(0),
-    "rate_limiter": DynamicRateLimiter(),
-}
+app = AppConfig(
+    worker_monitor=WorkerMonitor(0),
+    rate_limiter=DynamicRateLimiter(),
+)
 
+class AppJanitor:
+    def __init__(self):
+        self._janitor = None  # Initialize _app_janitor
+
+    async def __aenter__(self):
+        try:
+            # await get_crawler(BrowserConfig(
+            #     extra_args=config["crawler"]["browser"].get("extra_args", []),
+            #     **config["crawler"]["browser"].get("kwargs", {}),
+            # ))           # warm‑up
+            self._janitor = asyncio.create_task(janitor())  # Start janitor here
+            return self
+        except Exception as e:
+            print(f"Error occurred in lifespan startup: {e}")
+            raise
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._janitor:
+            self._janitor.cancel()
+        await close_all()
+        print("Lifespan shutdown complete.")
 
 # Add jobs to the scheduler
-@scheduler.scheduled_job("interval", minutes=0.3, max_instances=10)
+@scheduler.scheduled_job("interval", seconds=18, max_instances=10, coalesce=True)
 async def scheduled_job():
-    monitor: WorkerMonitor = app.get("worker_monitor")
+    
+    monitor: WorkerMonitor = app.worker_monitor
     await monitor.update_metrics()
 
     # Only process if system is healthy
@@ -52,6 +80,7 @@ async def startup_event():
     System health checks before processing
 
     """
+
     scheduler.start()
 
     # worker_args = []
@@ -72,23 +101,31 @@ async def startup_event():
 # Shutdown event to clean up resources
 async def shutdown_event():
     scheduler.shutdown()
+    async with AppJanitor() as aj:
+        await aj.__aexit__(None, None, None)
+
 
 
 async def main():
-    try:
-        await startup_event()
-    except Exception as e:
-        print(f"Error occurred in startup event: {e}")
-    finally:
-        await shutdown_event()
-        print("Application shutdown complete.")
+    async with AppJanitor():
+        print("Application startup initiated.")
+        try:
+            await startup_event()
+        except Exception as e:
+            print(f"Error occurred in startup event: {e}")
+        finally:
+            await shutdown_event()
+            print("Application shutdown complete.")
 
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt received")
+        # asyncio.run(shutdown_event())
     except Exception as e:
         print(f"Error occurred outside startup event: {e}")
-        asyncio.run(shutdown_event())
+        # asyncio.run(shutdown_event())
     finally:
-        print("Script exited.")
+        print("Worker exited.")
